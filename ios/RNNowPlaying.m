@@ -21,6 +21,14 @@ RCT_EXPORT_MODULE();
     return self;
 }
 
+RCT_EXPORT_METHOD(getTrack: (RCTResponseSenderBlock)callback)
+{
+    MPMediaItem *item = [[MPMusicPlayerController iPodMusicPlayer] nowPlayingItem];
+    NSString *artist = [NSString stringWithFormat:@"%@", item.title];
+    callback(@[[NSNull null], @{@"artist": artist
+                                }]);
+}
+
 - (void)nowPlayingEventReceived:(NSNotification *)notification
 {
     //e.playbackTime, e.playbackDuration, e.title, e.albumTitle, e.artist
