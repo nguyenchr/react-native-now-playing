@@ -9,8 +9,10 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
@@ -18,6 +20,8 @@ public class RNNowPlayingModule extends ReactContextBaseJavaModule {
   public static final int REQUEST_CODE_READ_STORAGE = 180;
   private Context context;
   private final ReactApplicationContext reactContext;
+  private WritableMap initialMap;
+  private boolean hasListeners = false;
 
   static final class BroadcastTypes {
     static final String ANDROID_PLAYSTATE_CHANGED = "com.android.music.playstatechanged";
@@ -34,6 +38,15 @@ public class RNNowPlayingModule extends ReactContextBaseJavaModule {
   @Override
   public String getName() {
     return "RNNowPlaying";
+  }
+
+  @ReactMethod
+  public void isListening(Callback callback) {
+    hasListeners = true;
+    if (initialMap != null) {
+      sendEvent("NowPlayingEvent", initialMap);
+    }
+    callback.invoke();
   }
 
   private void sendEvent(String eventName, @Nullable WritableMap params){
@@ -94,7 +107,11 @@ public class RNNowPlayingModule extends ReactContextBaseJavaModule {
           params.putString("title", track);
           params.putString("artist", artist);
           params.putString("albumTitle", album);
-          sendEvent("NowPlayingEvent", params);
+          if (!hasListeners) {
+            initialMap = params;
+          } else {
+            sendEvent("NowPlayingEvent", params);
+          }
         }
       }
     };
