@@ -1,7 +1,10 @@
 #import "RNNowPlaying.h"
 #import "RCTEventDispatcher.h"
 
-@implementation RNNowPlaying
+@implementation RNNowPlaying {
+    bool hasListeners;
+    NSDictionary *initialEventBody;
+}
 
 
 RCT_EXPORT_MODULE();
@@ -21,6 +24,15 @@ RCT_EXPORT_MODULE();
     return self;
 }
 
+RCT_EXPORT_METHOD(isListening: (RCTResponseSenderBlock)callback)
+{
+    hasListeners = true;
+    if (initialEventBody != Nil) {
+            [self sendEventWithName:@"NowPlayingEvent" body:initialEventBody];
+    }
+    return callback(@[[NSNull null]]);
+}
+
 - (void)nowPlayingEventReceived:(NSNotification *)notification
 {
     //e.playbackTime, e.playbackDuration, e.title, e.albumTitle, e.artist
@@ -35,14 +47,18 @@ RCT_EXPORT_MODULE();
     NSString *title = [NSString stringWithFormat:@"%@", item.title];
     
     if (player.playbackState == MPMusicPlaybackStatePlaying){
-        [self sendEventWithName:@"NowPlayingEvent"
-                           body:@{@"playbackTime": playbackTime,
-                                  @"playbackDuration": playbackDuration,
-                                  @"title": title,
-                                  @"albumTitle": albumTitle,
-                                  @"artist": artist
-                                  
-                                  }];
+        NSDictionary *body = @{@"playbackTime": playbackTime,
+                           @"playbackDuration": playbackDuration,
+                           @"title": title,
+                           @"albumTitle": albumTitle,
+                           @"artist": artist
+                           };
+        if (hasListeners) {
+            [self sendEventWithName:@"NowPlayingEvent" body:body];
+        } else {
+            initialEventBody = body;
+        }
+
     }
         
 
