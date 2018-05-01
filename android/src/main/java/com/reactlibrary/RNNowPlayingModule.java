@@ -89,10 +89,6 @@ public class RNNowPlayingModule extends ReactContextBaseJavaModule {
         Long duration = intent.getLongExtra("duration", 0);
         Boolean playing = intent.getBooleanExtra("playing", false);
 
-        if (action == BroadcastTypes.SPOTIFY_METADATA_CHANGED) {
-          // Spotify metadata change does not include playing field, so we assume its true
-          playing = true;
-        }
 
         if (artist == null && album == null && track == null){
           return;
@@ -102,16 +98,15 @@ public class RNNowPlayingModule extends ReactContextBaseJavaModule {
 
         Log.v("intent", "ecoute locale detectée ac:" + action + " cmd:" + cmd + " track " + track + " playing " + playing + "music active: " + manager.isMusicActive());
 
-        if (playing){
-          WritableMap params = Arguments.createMap();
-          params.putString("title", track);
-          params.putString("artist", artist);
-          params.putString("albumTitle", album);
-          if (!hasListeners) {
-            initialMap = params;
-          } else {
-            sendEvent("NowPlayingEvent", params);
-          }
+        WritableMap params = Arguments.createMap();
+        params.putString("title", track);
+        params.putString("artist", artist);
+        params.putString("albumTitle", album);
+        params.putBoolean("playing", playing);
+        if (!hasListeners) {
+          initialMap = params;
+        } else {
+          sendEvent("NowPlayingEvent", params);
         }
       }
     };
